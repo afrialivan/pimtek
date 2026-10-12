@@ -13,6 +13,7 @@ export default function AdminDepartments() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   if (!ready) {
     return <p className="text-[16px] text-zinc-500">Memuat...</p>;
@@ -124,20 +125,31 @@ export default function AdminDepartments() {
           <ul className="mt-4 flex flex-col gap-3">
             {departments.map((d) => {
               const count = countOf(d.name);
+              const deptUsers = users.filter((u) => u.department === d.name);
+              const isOpen = expanded === d.id;
               return (
                 <li
                   key={d.id}
                   className="rounded-[12px] border border-[#eef1f5] px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-[16px] font-bold text-black">{d.name}</span>
-                    <span className="text-[14px] text-zinc-500">
-                      {count} pengguna
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(isOpen ? null : d.id)}
+                      title={isOpen ? "Tutup daftar akun" : "Lihat akun"}
+                      className="min-w-0 flex-1 text-left"
+                    >
+                      <span className="block truncate text-[16px] font-bold text-black">
+                        {d.name}
+                      </span>
+                      <span className="text-[14px] text-zinc-500">
+                        {count} pengguna{isOpen ? " ▲" : " ▼"}
+                      </span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => void handleDelete(d.id)}
-                      className="ml-auto rounded-[8px] border border-[#b3261e] px-4 py-1.5 text-[14px] font-medium text-[#b3261e] transition-colors hover:bg-[#fdf0ef]"
+                      className="ml-auto shrink-0 rounded-[8px] border border-[#b3261e] px-4 py-1.5 text-[14px] font-medium text-[#b3261e] transition-colors hover:bg-[#fdf0ef]"
                     >
                       Hapus
                     </button>
@@ -150,6 +162,33 @@ export default function AdminDepartments() {
                       }}
                     />
                   </div>
+                  {isOpen && (
+                    <ul className="mt-3 flex flex-col gap-1.5 border-t border-slate-100 pt-3">
+                      {deptUsers.length === 0 && (
+                        <li className="text-[14px] text-zinc-500">
+                          Belum ada akun di departemen ini.
+                        </li>
+                      )}
+                      {deptUsers.map((u) => (
+                        <li
+                          key={u.nim}
+                          className="flex items-center gap-2 text-[14px]"
+                        >
+                          <span className="font-medium text-black">{u.name}</span>
+                          <span className="text-zinc-500">{u.nim}</span>
+                          <span
+                            className={`ml-auto rounded-full px-2.5 py-0.5 text-[12px] font-medium ${
+                              u.role === "admin"
+                                ? "bg-[#fde4e4] text-[#8f1d1d]"
+                                : "bg-[#eef4fb] text-[#2f5d9a]"
+                            }`}
+                          >
+                            {u.role}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               );
             })}

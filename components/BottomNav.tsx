@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import MenuSheet from "@/components/MenuSheet";
 
 function GridIcon({ active }: { active: boolean }) {
   const color = active ? "#1d5a9a" : "#8a8a8a";
@@ -39,20 +40,51 @@ function TeamsIcon({ active }: { active: boolean }) {
   );
 }
 
-function LogoutIcon({ active }: { active: boolean }) {
+function BellIcon({ active }: { active: boolean }) {
   const color = active ? "#1d5a9a" : "#8a8a8a";
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="2" y="4" width="12" height="16" rx="4" fill={color} opacity="0.6" />
-      <path d="M12 12h9m0 0-3-3m3 3-3 3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Zm4 10a2 2 0 0 0 4 0"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
-const ITEMS = [
+function MenuIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16" stroke="#8a8a8a" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AdminTeamsIcon({ active }: { active: boolean }) {
+  const color = active ? "#1d5a9a" : "#8a8a8a";
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9" cy="8" r="3.2" stroke={color} strokeWidth="2" />
+      <circle cx="16.5" cy="9.5" r="2.6" stroke={color} strokeWidth="2" />
+      <path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const USER_ITEMS = [
   { href: "/", label: "Dashboard", Icon: GridIcon, match: (p: string) => p === "/" },
   { href: "/explore", label: "Explore", Icon: SearchIcon, match: (p: string) => p.startsWith("/explore") },
   { href: "/teams", label: "Teams", Icon: TeamsIcon, match: (p: string) => p.startsWith("/teams") },
+  { href: "/notifikasi", label: "Notif", Icon: BellIcon, match: (p: string) => p.startsWith("/notifikasi") },
+];
+
+const ADMIN_ITEMS = [
+  { href: "/", label: "Dashboard", Icon: GridIcon, match: (p: string) => p === "/" },
+  { href: "/admin/teams", label: "Tim", Icon: AdminTeamsIcon, match: (p: string) => p.startsWith("/admin/teams") },
+  { href: "/admin/requests", label: "Request", Icon: BellIcon, match: (p: string) => p.startsWith("/admin/requests") },
 ];
 
 export default function BottomNav() {
@@ -65,51 +97,77 @@ export default function BottomNav() {
 
 function BottomNavInner() {
   const pathname = usePathname();
-  const { user, logout } = useLocalDb();
+  const { user, memberships, requests, logout } = useLocalDb();
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
   const isAdmin = user?.role === "admin";
-  const items = isAdmin ? ITEMS.slice(0, 1) : ITEMS;
+  const items = isAdmin ? ADMIN_ITEMS : USER_ITEMS;
+
+  const notifCount = !user
+    ? 0
+    : requests.filter(
+        (r) =>
+          (memberships.some(
+            (m) => m.nim === user.nim && m.role === "Leader" && m.teamId === r.teamId
+          ) &&
+            r.status === "pending") ||
+          (r.nim === user.nim && r.status !== "pending")
+      ).length;
 
   return (
-    <nav
-      aria-label="Navigasi utama"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-[#e2e9f2] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
-    >
-      <ul
-        className="grid"
-        style={{ gridTemplateColumns: `repeat(${items.length + 1}, minmax(0, 1fr))` }}
+    <>
+      <nav
+        aria-label="Navigasi utama"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-[#e2e9f2] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
-        {items.map(({ href, label, Icon, match }) => {
-          const active = match(pathname);
-          return (
-            <li key={label}>
-              <Link
-                href={href}
-                {...(active ? { "aria-current": "page" as const } : {})}
-                className={`flex flex-col items-center gap-1 py-2.5 text-[12px] font-medium ${
-                  active ? "text-[#1d5a9a]" : "text-zinc-500"
-                }`}
-              >
-                <Icon active={active} />
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-        <li>
-          <button
-            type="button"
-            onClick={() => {
-              logout();
-              router.replace("/login");
-            }}
-            className="flex w-full flex-col items-center gap-1 py-2.5 text-[12px] font-medium text-zinc-500"
-          >
-            <LogoutIcon active={false} />
-            Keluar
-          </button>
-        </li>
-      </ul>
-    </nav>
+        <ul
+          className="grid"
+          style={{ gridTemplateColumns: `repeat(${items.length + 1}, minmax(0, 1fr))` }}
+        >
+          {items.map(({ href, label, Icon, match }) => {
+            const active = match(pathname);
+            const showBadge = label === "Notif" && notifCount > 0;
+            return (
+              <li key={label}>
+                <Link
+                  href={href}
+                  {...(active ? { "aria-current": "page" as const } : {})}
+                  className={`relative flex flex-col items-center gap-1 py-2.5 text-[12px] font-medium ${
+                    active ? "text-[#1d5a9a]" : "text-zinc-500"
+                  }`}
+                >
+                  <Icon active={active} />
+                  {showBadge && (
+                    <span className="absolute right-1/2 top-1 flex h-4 min-w-4 translate-x-4 items-center justify-center rounded-full bg-[#b3261e] px-1 text-[10px] font-bold text-white">
+                      {notifCount > 9 ? "9+" : notifCount}
+                    </span>
+                  )}
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
+          <li>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Buka menu"
+              className="flex w-full flex-col items-center gap-1 py-2.5 text-[12px] font-medium text-zinc-500"
+            >
+              <MenuIcon />
+              Menu
+            </button>
+          </li>
+        </ul>
+      </nav>
+      <MenuSheet
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onLogout={() => {
+          logout();
+          router.replace("/login");
+        }}
+      />
+    </>
   );
 }

@@ -20,6 +20,7 @@ export default function AdminUsersView() {
     newPassword: "",
   });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deptFilter, setDeptFilter] = useState("");
 
   const OTHER_DEPARTMENT = "__lainnya__";
   const isCustomDept = form.department === OTHER_DEPARTMENT;
@@ -105,6 +106,37 @@ export default function AdminUsersView() {
         <p className="text-[15px] text-zinc-500">{users.length} akun terdaftar.</p>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setDeptFilter("")}
+          className={`rounded-full px-4 py-2 text-[14px] font-medium transition-colors ${
+            deptFilter === ""
+              ? "bg-[#2f5d9a] text-white"
+              : "bg-white text-zinc-600 shadow-sm hover:bg-slate-50"
+          }`}
+        >
+          Semua ({users.length})
+        </button>
+        {departments.map((d) => {
+          const count = users.filter((u) => u.department === d.name).length;
+          return (
+            <button
+              key={d.id}
+              type="button"
+              onClick={() => setDeptFilter(deptFilter === d.name ? "" : d.name)}
+              className={`rounded-full px-4 py-2 text-[14px] font-medium transition-colors ${
+                deptFilter === d.name
+                  ? "bg-[#2f5d9a] text-white"
+                  : "bg-white text-zinc-600 shadow-sm hover:bg-slate-50"
+              }`}
+            >
+              {d.name} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       <section className="rounded-[20px] bg-white p-7 shadow-[0_2px_16px_rgba(30,60,110,0.06)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-left text-[15px]">
@@ -118,7 +150,9 @@ export default function AdminUsersView() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {users
+                .filter((u) => !deptFilter || u.department === deptFilter)
+                .map((u) => (
                 <tr key={u.nim} className="border-b border-slate-100 text-black">
                   <td className="px-3 py-3">{u.nim}</td>
                   <td className="px-3 py-3 font-medium">{u.name}</td>
