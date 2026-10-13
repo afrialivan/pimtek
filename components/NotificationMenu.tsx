@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { isProfileIncomplete } from "@/lib/team-types";
 
 export default function NotificationMenu() {
   const { user, memberships, requests } = useLocalDb();
@@ -19,7 +20,10 @@ export default function NotificationMenu() {
   const mine = requests.filter(
     (r) => r.nim === user.nim && r.status !== "pending"
   );
-  const count = incoming.length + mine.length;
+  const count =
+    incoming.length +
+    mine.length +
+    (user && isProfileIncomplete(user) ? 1 : 0);
   const active = pathname.startsWith("/notifikasi");
 
   return (

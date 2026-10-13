@@ -13,6 +13,8 @@ export default function ExploreTeamsView() {
   const [query, setQuery] = useState("");
   const [scheme, setScheme] = useState("");
   const [notice, setNotice] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [optimisticIds, setOptimisticIds] = useState<string[]>([]);
 
   const countOf = (teamId: string) =>
     memberships.filter((m) => m.teamId === teamId).length;
@@ -36,23 +38,33 @@ export default function ExploreTeamsView() {
 
   function statusFor(teamId: string): TeamCardStatus {
     if (myTeamIds.includes(teamId)) return "member";
-    if (myPendingIds.includes(teamId)) return "pending";
+    if (myPendingIds.includes(teamId) || optimisticIds.includes(teamId))
+      return "pending";
     if (hasTeam || hasPending) return "blocked";
     return "joinable";
   }
 
   function handleJoin(teamId: string) {
+    if (busyId) return;
     setNotice("");
+    // Optimistic: tampilkan Menunggu seketika.
+    setOptimisticIds((prev) => (prev.includes(teamId) ? prev : [...prev, teamId]));
+    setBusyId(teamId);
     void (async () => {
-      const res = await requestJoin(teamId);
-      if (!res.ok) {
-        setNotice(
-          res.reason === "member"
-            ? "Kamu sudah tergabung di 1 tim. Keluar dulu untuk pindah tim."
-            : "Kamu sudah punya 1 permintaan pending. Batalkan dulu untuk pindah tim."
-        );
-      } else {
-        toast.success("Permintaan terkirim, menunggu persetujuan ketua.");
+      try {
+        const res = await requestJoin(teamId);
+        if (!res.ok) {
+          setOptimisticIds((prev) => prev.filter((id) => id !== teamId));
+          setNotice(
+            res.reason === "member"
+              ? "Kamu sudah tergabung di 1 tim. Keluar dulu untuk pindah tim."
+              : "Kamu sudah punya 1 permintaan pending. Batalkan dulu untuk pindah tim."
+          );
+        } else {
+          toast.success("Permintaan terkirim, menunggu persetujuan ketua.");
+        }
+      } finally {
+        setBusyId(null);
       }
     })();
   }
@@ -132,6 +144,7 @@ export default function ExploreTeamsView() {
               team={team}
               memberCount={countOf(team.id)}
               status={statusFor(team.id)}
+              joinBusy={busyId === team.id}
               blockedReason="Kamu sudah tergabung di 1 tim. Keluar dulu untuk pindah tim."
               onJoin={() => handleJoin(team.id)}
             />

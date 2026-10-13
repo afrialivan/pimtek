@@ -24,14 +24,16 @@ export default function TeamCard({
   status = "member",
   memberCount,
   blockedReason,
+  joinBusy = false,
   onJoin,
 }: {
   team: Team;
   /** member: Tim Saya (Buka+Chat) · pending: badge Menunggu · joinable: tombol Gabung · blocked: Gabung nonaktif */
   status?: TeamCardStatus;
-  /** Jumlah anggota riil dari database lokal. Jika kosong, tampilkan angka dummy. */
+  /** Jumlah anggota riil dari database. Jika kosong, tampilkan angka dummy. */
   memberCount?: number;
   blockedReason?: string;
+  joinBusy?: boolean;
   onJoin?: () => void;
 }) {
   // const percent = Math.round((team.tasksDone / team.tasksTotal) * 100);
@@ -175,9 +177,16 @@ export default function TeamCard({
           <button
             type="button"
             onClick={onJoin}
-            className="flex h-[52px] items-center rounded-[10px] bg-[#2f5d9a] px-6 text-[17px] font-medium text-white transition-colors hover:bg-[#274d80]"
+            disabled={joinBusy}
+            className="flex h-[52px] items-center gap-2 rounded-[10px] bg-[#2f5d9a] px-6 text-[17px] font-medium text-white transition-colors hover:bg-[#274d80] disabled:cursor-wait disabled:opacity-80"
           >
-            Gabung
+            {joinBusy && (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="animate-spin">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.3" strokeWidth="3" />
+                <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+            )}
+            {joinBusy ? "Mengirim..." : "Gabung"}
           </button>
         )}
         {status === "blocked" && (

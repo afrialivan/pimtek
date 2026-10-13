@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useLocalDb } from "@/components/LocalDbProvider";
-import { PKM_SCHEMES } from "@/lib/team-types";
+import { PKM_SCHEMES, isProfileIncomplete } from "@/lib/team-types";
 import { ProfileSkeleton } from "@/components/Skeleton";
 
 function BarRow({ label, value, max }: { label: string; value: number; max: number }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="w-[110px] shrink-0 truncate text-[14px] text-zinc-600">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <span className="w-[84px] shrink-0 truncate text-[13px] text-zinc-600 sm:w-[110px] sm:text-[14px]" title={label}>
         {label}
       </span>
       <div className="h-[10px] flex-1 overflow-hidden rounded-full bg-[#e6ebf2]">
@@ -27,6 +28,7 @@ function BarRow({ label, value, max }: { label: string; value: number; max: numb
 export default function ProfileCard() {
   const { ready, user, users, teams, requests, myTeamIds, myPendingIds } =
     useLocalDb();
+  const [nagDismissed, setNagDismissed] = useState(false);
 
   if (!ready) {
     return (
@@ -120,12 +122,12 @@ export default function ProfileCard() {
           ))}
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           {shortcuts.map((s) => (
             <Link
               key={s.href}
               href={s.href}
-              className="flex h-[52px] items-center rounded-[10px] bg-[#2f5d9a] px-8 text-[17px] font-medium text-white transition-colors hover:bg-[#274d80]"
+              className="flex h-[52px] items-center justify-center rounded-[10px] bg-[#2f5d9a] px-8 text-[17px] font-medium text-white transition-colors hover:bg-[#274d80]"
             >
               {s.label}
             </Link>
@@ -179,6 +181,30 @@ export default function ProfileCard() {
         </div>
       </div>
 
+      {isProfileIncomplete(user) && !nagDismissed && (
+        <div className="mt-6 flex flex-col gap-3 rounded-[14px] bg-[#fdf3e0] px-5 py-4 sm:flex-row sm:items-center">
+          <p className="flex-1 text-[15px] text-black">
+            <strong>Profilmu belum lengkap.</strong> Lengkapi data diri agar
+            ketua tim bisa mengenalmu.
+          </p>
+          <div className="flex gap-2">
+            <Link
+              href="/profil"
+              className="rounded-[10px] bg-[#b07d10] px-5 py-2 text-[15px] font-medium text-white transition-colors hover:bg-[#96690c]"
+            >
+              Isi sekarang
+            </Link>
+            <button
+              type="button"
+              onClick={() => setNagDismissed(true)}
+              className="rounded-[10px] px-4 py-2 text-[15px] text-zinc-600 hover:underline"
+            >
+              Nanti
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-[14px] bg-[#eef4fb] p-5">
           <p className="text-[13px] tracking-widest text-[#4a6fa0]">TIM SAYA</p>
@@ -203,22 +229,22 @@ export default function ProfileCard() {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Link
           href="/profil"
-          className="flex h-[52px] items-center rounded-[10px] border border-[#2f5d9a] px-8 text-[17px] font-medium text-[#2f5d9a] transition-colors hover:bg-[#eef4fb]"
+          className="flex h-[52px] items-center justify-center rounded-[10px] border border-[#2f5d9a] px-8 text-[17px] font-medium text-[#2f5d9a] transition-colors hover:bg-[#eef4fb]"
         >
           {!user.bio ? "Lengkapi Data Diri" : "Data Diri"}
         </Link>
         <Link
           href="/explore"
-          className="flex h-[52px] items-center rounded-[10px] border border-[#2f5d9a] px-8 text-[17px] font-medium text-[#2f5d9a] transition-colors hover:bg-[#eef4fb]"
+          className="flex h-[52px] items-center justify-center rounded-[10px] border border-[#2f5d9a] px-8 text-[17px] font-medium text-[#2f5d9a] transition-colors hover:bg-[#eef4fb]"
         >
           Explore Tim
         </Link>
         <Link
           href="/teams"
-          className="flex h-[52px] items-center rounded-[10px] bg-[#2f5d9a] px-8 text-[17px] font-medium text-white transition-colors hover:bg-[#274d80]"
+          className="flex h-[52px] items-center justify-center rounded-[10px] bg-[#2f5d9a] px-8 text-[17px] font-medium text-white transition-colors hover:bg-[#274d80]"
         >
           Tim Saya
         </Link>

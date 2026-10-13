@@ -36,3 +36,15 @@ export function countWords(text: string): number {
   const words = text.trim().split(/\s+/).filter(Boolean);
   return text.trim().length === 0 ? 0 : words.length;
 }
+
+export function isProfileIncomplete(profile: {
+  bio?: string;
+  skills?: string;
+  experiences?: string;
+}): boolean {
+  return (
+    !(profile.bio ?? "").trim() ||
+    !(profile.skills ?? "").trim() ||
+    !(profile.experiences ?? "").trim()
+  );
+}

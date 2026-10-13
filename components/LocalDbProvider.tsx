@@ -239,6 +239,10 @@ export default function LocalDbProvider({ children }: { children: ReactNode }) {
               window.localStorage.removeItem(SESSION_KEY);
             }
           }
+          // Optimistic: set user seketika agar guard tidak memantulkan
+          // balik ke /login selagi refresh berjalan.
+          setNim(data.user.nim);
+          setUser(data.user);
           refresh();
           return { ok: true, user: data.user, message: "" };
         } catch (error) {

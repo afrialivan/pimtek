@@ -107,39 +107,28 @@ export default function AdminUsersView() {
         <p className="text-[15px] text-zinc-500">{users.length} akun terdaftar.</p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setDeptFilter("")}
-          className={`rounded-full px-4 py-2 text-[14px] font-medium transition-colors ${
-            deptFilter === ""
-              ? "bg-[#2f5d9a] text-white"
-              : "bg-white text-zinc-600 shadow-sm hover:bg-slate-50"
-          }`}
+      <label className="flex max-w-[420px] items-center gap-3 rounded-[14px] bg-white px-4 py-2.5 shadow-sm">
+        <span className="shrink-0 text-[15px] text-zinc-500">Departemen:</span>
+        <select
+          value={deptFilter}
+          onChange={(e) => setDeptFilter(e.target.value)}
+          aria-label="Filter departemen"
+          className="w-full cursor-pointer appearance-none bg-transparent py-1 text-[15px] font-medium text-black outline-none"
         >
-          Semua ({users.length})
-        </button>
-        {departments.map((d) => {
-          const count = users.filter((u) => u.department === d.name).length;
-          return (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => setDeptFilter(deptFilter === d.name ? "" : d.name)}
-              className={`rounded-full px-4 py-2 text-[14px] font-medium transition-colors ${
-                deptFilter === d.name
-                  ? "bg-[#2f5d9a] text-white"
-                  : "bg-white text-zinc-600 shadow-sm hover:bg-slate-50"
-              }`}
-            >
-              {d.name} ({count})
-            </button>
-          );
-        })}
-      </div>
+          <option value="">Semua ({users.length})</option>
+          {departments.map((d) => {
+            const count = users.filter((u) => u.department === d.name).length;
+            return (
+              <option key={d.id} value={d.name}>
+                {d.name} ({count})
+              </option>
+            );
+          })}
+        </select>
+      </label>
 
-      <section className="rounded-[20px] bg-white p-7 shadow-[0_2px_16px_rgba(30,60,110,0.06)]">
-        <div className="overflow-x-auto">
+      <section className="rounded-[20px] bg-white p-4 shadow-[0_2px_16px_rgba(30,60,110,0.06)] sm:p-7">
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[720px] border-collapse text-left text-[15px]">
             <thead>
               <tr className="border-b border-[#e2e9f2] text-zinc-500">
@@ -213,6 +202,69 @@ export default function AdminUsersView() {
             </tbody>
           </table>
         </div>
+        <ul className="flex flex-col gap-3 md:hidden">
+          {users
+            .filter((u) => !deptFilter || u.department === deptFilter)
+            .map((u) => (
+              <li
+                key={u.nim}
+                className="rounded-[12px] border border-[#eef1f5] p-4"
+              >
+                <div className="flex items-center gap-2">
+                  <p className="min-w-0 flex-1 truncate text-[16px] font-bold text-black">
+                    {u.name}
+                  </p>
+                  <span
+                    className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-medium ${
+                      u.role === "admin"
+                        ? "bg-[#fde4e4] text-[#8f1d1d]"
+                        : "bg-[#eef4fb] text-[#2f5d9a]"
+                    }`}
+                  >
+                    {u.role}
+                  </span>
+                </div>
+                <p className="mt-1 text-[13px] text-zinc-500">
+                  {u.nim} · {u.department}
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(u)}
+                    className="flex-1 rounded-[8px] border border-[#2f5d9a] px-4 py-2 text-[14px] font-medium text-[#2f5d9a]"
+                  >
+                    Edit
+                  </button>
+                  {confirmDelete === u.nim ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(u.nim)}
+                        className="flex-1 rounded-[8px] bg-[#b3261e] px-4 py-2 text-[14px] font-medium text-white"
+                      >
+                        Ya, Hapus
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDelete(null)}
+                        className="flex-1 rounded-[8px] border border-[#c9d4e2] px-4 py-2 text-[14px] text-zinc-600"
+                      >
+                        Batal
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(u.nim)}
+                      className="flex-1 rounded-[8px] border border-[#b3261e] px-4 py-2 text-[14px] font-medium text-[#b3261e]"
+                    >
+                      Hapus
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+        </ul>
       </section>
 
       {editing && (

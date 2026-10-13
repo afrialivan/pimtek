@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { isProfileIncomplete } from "@/lib/team-types";
 import { ContentSkeleton } from "@/components/Skeleton";
 
 function statusChip(status: string) {
@@ -58,6 +59,28 @@ export default function NotificationsView() {
           Permintaan masuk dan status permintaanmu.
         </p>
       </div>
+
+      <section className="rounded-[20px] bg-white p-7 shadow-[0_2px_16px_rgba(30,60,110,0.06)]">
+        <h2 className="text-[20px] font-bold text-[#2f5d9a]">Profil</h2>
+        {user && isProfileIncomplete(user) ? (
+          <Link
+            href="/profil"
+            className="mt-3 flex items-center gap-3 rounded-[12px] border border-[#f0d9a8] bg-[#fdf6e7] p-4 transition-colors hover:bg-[#fdf0d8]"
+          >
+            <span className="min-w-0 flex-1 text-[15px] text-black">
+              <strong>Data dirimu belum lengkap.</strong> Isi bio, skills, dan
+              pengalaman agar mudah dilirik ketua tim.
+            </span>
+            <span className="shrink-0 rounded-[10px] bg-[#b07d10] px-4 py-2 text-[14px] font-medium text-white">
+              Isi
+            </span>
+          </Link>
+        ) : (
+          <p className="mt-3 rounded-[12px] bg-slate-50 p-4 text-[15px] text-zinc-500">
+            Data dirimu sudah lengkap.
+          </p>
+        )}
+      </section>
 
       <section className="rounded-[20px] bg-white p-7 shadow-[0_2px_16px_rgba(30,60,110,0.06)]">
         <h2 className="text-[20px] font-bold text-[#2f5d9a]">

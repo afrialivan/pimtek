@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { db, dbError, mapTeam } from "@/app/api/_lib";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const rows = await db.select<Record<string, unknown>>(
-      "teams",
-      "select=*&order=created_at"
-    );
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const query = id
+      ? `select=*&id=eq.${encodeURIComponent(id)}`
+      : "select=*&order=created_at";
+    const rows = await db.select<Record<string, unknown>>("teams", query);
     return NextResponse.json(rows.map(mapTeam));
   } catch (error) {
     return dbError(error);

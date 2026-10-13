@@ -6,6 +6,7 @@ import { Suspense, useState } from "react";
 import { useLocalDb } from "@/components/LocalDbProvider";
 import MenuSheet from "@/components/MenuSheet";
 import { useToast } from "@/components/Toast";
+import { isProfileIncomplete } from "@/lib/team-types";
 
 function GridIcon({ active }: { active: boolean }) {
   const color = active ? "#1d5a9a" : "#8a8a8a";
@@ -105,16 +106,17 @@ function BottomNavInner() {
   const isAdmin = user?.role === "admin";
   const items = isAdmin ? ADMIN_ITEMS : USER_ITEMS;
 
-  const notifCount = !user
-    ? 0
-    : requests.filter(
-        (r) =>
-          (memberships.some(
-            (m) => m.nim === user.nim && m.role === "Leader" && m.teamId === r.teamId
-          ) &&
-            r.status === "pending") ||
-          (r.nim === user.nim && r.status !== "pending")
-      ).length;
+  const notifCount =
+    !user
+      ? 0
+      : requests.filter(
+          (r) =>
+            (memberships.some(
+              (m) => m.nim === user.nim && m.role === "Leader" && m.teamId === r.teamId
+            ) &&
+              r.status === "pending") ||
+            (r.nim === user.nim && r.status !== "pending")
+        ).length + (isProfileIncomplete(user) ? 1 : 0);
 
   return (
     <>
@@ -134,7 +136,7 @@ function BottomNavInner() {
                 <Link
                   href={href}
                   {...(active ? { "aria-current": "page" as const } : {})}
-                  className={`relative flex flex-col items-center gap-1 py-2.5 text-[12px] font-medium ${
+                  className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium ${
                     active ? "text-[#1d5a9a]" : "text-zinc-500"
                   }`}
                 >
@@ -154,7 +156,7 @@ function BottomNavInner() {
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-label="Buka menu"
-              className="flex w-full flex-col items-center gap-1 py-2.5 text-[12px] font-medium text-zinc-500"
+              className="flex w-full flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium text-zinc-500"
             >
               <MenuIcon />
               Menu

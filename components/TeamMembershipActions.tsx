@@ -7,6 +7,15 @@ import { useLocalDb } from "@/components/LocalDbProvider";
 import ProfileModal from "@/components/ProfileModal";
 import { useToast } from "@/components/Toast";
 
+function BtnSpinner() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="animate-spin">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.3" strokeWidth="3" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function TeamMembershipActions({ teamId }: { teamId: string }) {
   const {
     user,
@@ -30,11 +39,13 @@ export default function TeamMembershipActions({ teamId }: { teamId: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedNim, setSelectedNim] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [optimisticPending, setOptimisticPending] = useState(false);
 
   if (!user) return null;
 
   const isMember = myTeamIds.includes(teamId);
-  const isPending = myPendingIds.includes(teamId);
+  const isPending = myPendingIds.includes(teamId) || optimisticPending;
   const role = myRole(teamId);
   const isLeader = role === "Leader";
   const isAdmin = user.role === "admin";
@@ -49,60 +60,114 @@ export default function TeamMembershipActions({ teamId }: { teamId: string }) {
   }
 
   function handleJoin() {
+    if (busy) return;
     setNotice("");
+    // Optimistic: tampilkan Menunggu seketika.
+    setOptimisticPending(true);
+    setBusy("join");
     void (async () => {
-      const res = await requestJoin(teamId);
-      if (!res.ok) {
-        setNotice(
-          res.reason === "member"
-            ? "Kamu sudah tergabung di 1 tim. Keluar dulu untuk pindah tim."
-            : "Kamu sudah punya 1 permintaan pending. Batalkan dulu untuk pindah tim."
-        );
-      } else {
-        toast.success("Permintaan terkirim, menunggu persetujuan ketua.");
+      try {
+        const res = await requestJoin(teamId);
+        if (!res.ok) {
+          setOptimisticPending(false);
+          setNotice(
+            res.reason === "member"
+              ? "Kamu sudah tergabung di 1 tim. Keluar dulu untuk pindah tim."
+              : "Kamu sudah punya 1 permintaan pending. Batalkan dulu untuk pindah tim."
+          );
+        } else {
+          toast.success("Permintaan terkirim, menunggu persetujuan ketua.");
+        }
+      } finally {
+        setBusy(null);
       }
     })();
   }
 
   function handleApprove(id: string) {
+    if (busy) return;
     setNotice("");
+    setBusy(`approve:${id}`);
     void (async () => {
-      const ok = await approveRequest(id);
-      if (!ok) {
-        setNotice(
-          "Gagal: pendaftar sudah tergabung di tim lain. Request ditolak otomatis."
-        );
-      } else {
-        toast.success("Pendaftar disetujui masuk tim.");
+      try {
+        const ok = await approveRequest(id);
+        if (!ok) {
+          setNotice(
+            "Gagal: pendaftar sudah tergabung di tim lain. Request ditolak otomatis."
+          );
+        } else {
+          toast.success("Pendaftar disetujui masuk tim.");
+        }
+      } finally {
+        setBusy(null);
+      }
+    })();
+  }
+
+  function handleReject(id: string) {
+    if (busy) return;
+    setBusy(`reject:${id}`);
+    void (async () => {
+      try {
+        await rejectRequest(id);
+        toast.success("Pendaftar ditolak.");
+      } finally {
+        setBusy(null);
+      }
+    })();
+  }
+
+  function handleCancel() {
+    if (busy) return;
+    setBusy("cancel");
+    void (async () => {
+      try {
+        await cancelRequest(teamId);
+        setOptimisticPending(false);
+        toast.success("Permintaan dibatalkan.");
+      } finally {
+        setBusy(null);
       }
     })();
   }
 
   function handleLeave() {
+    if (busy) return;
     setNotice("");
+    setBusy("leave");
     void (async () => {
-      const res = await leaveTeam(teamId, isLeader ? successor : undefined);
-      if (!res.ok) {
-        setNotice(res.message);
-        return;
+      try {
+        const res = await leaveTeam(teamId, isLeader ? successor : undefined);
+        if (!res.ok) {
+          setNotice(res.message);
+          return;
+        }
+        setConfirmLeave(false);
+        setSuccessor("");
+        toast.success("Kamu keluar dari tim.");
+        router.replace("/teams");
+      } finally {
+        setBusy(null);
       }
-      setConfirmLeave(false);
-      setSuccessor("");
-      toast.success("Kamu keluar dari tim.");
-      router.replace("/teams");
     })();
   }
 
   function handleDelete() {
+    if (busy) return;
     setNotice("");
+    setBusy("delete");
     void (async () => {
-      const res = await deleteTeam(teamId);
-      if (!res.ok) {
-        setNotice(res.message);
-        return;
+      try {
+        const res = await deleteTeam(teamId);
+        if (!res.ok) {
+          setNotice(res.message);
+          return;
+        }
+        toast.success("Tim dihapus.");
+        router.replace("/teams");
+      } finally {
+        setBusy(null);
       }
-      toast.success("Tim dihapus.");
-      router.replace("/teams");
     })();
   }
 
@@ -124,9 +189,11 @@ export default function TeamMembershipActions({ teamId }: { teamId: string }) {
           <button
             type="button"
             onClick={handleJoin}
-            className="h-[52px] rounded-[10px] bg-[#2f5d9a] px-8 text-[17px] font-medium text-white transition-colors hover:bg-[#274d80]"
+            disabled={busy !== null}
+            className="flex h-[52px] items-center gap-2 rounded-[10px] bg-[#2f5d9a] px-8 text-[17px] font-medium text-white transition-colors hover:bg-[#274d80] disabled:cursor-wait disabled:opacity-80"
           >
-            Minta Bergabung
+            {busy === "join" && <BtnSpinner />}
+            {busy === "join" ? "Mengirim..." : "Minta Bergabung"}
           </button>
         </div>
       )}
@@ -138,15 +205,12 @@ export default function TeamMembershipActions({ teamId }: { teamId: string }) {
           </span>
           <button
             type="button"
-            onClick={() => {
-              void (async () => {
-                await cancelRequest(teamId);
-                toast.success("Permintaan dibatalkan.");
-              })();
-            }}
-            className="h-[48px] rounded-[10px] border border-[#c9d4e2] px-6 text-[16px] font-medium text-zinc-600 transition-colors hover:bg-slate-50"
+            onClick={handleCancel}
+            disabled={busy !== null}
+            className="flex h-[48px] items-center gap-2 rounded-[10px] border border-[#c9d4e2] px-6 text-[16px] font-medium text-zinc-600 transition-colors hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70"
           >
-            Batalkan Permintaan
+            {busy === "cancel" && <BtnSpinner />}
+            {busy === "cancel" ? "Membatalkan..." : "Batalkan Permintaan"}
           </button>
         </div>
       )}
@@ -185,10 +249,11 @@ export default function TeamMembershipActions({ teamId }: { teamId: string }) {
                 <button
                   type="button"
                   onClick={handleLeave}
-                  disabled={isLeader && !successor}
-                  className="h-[48px] rounded-[10px] bg-[#b3261e] px-6 text-[16px] font-medium text-white transition-colors hover:bg-[#8f1d1d] disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={(isLeader && !successor) || busy !== null}
+                  className="flex h-[48px] items-center gap-2 rounded-[10px] bg-[#b3261e] px-6 text-[16px] font-medium text-white transition-colors hover:bg-[#8f1d1d] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Ya, Keluar
+                  {busy === "leave" && <BtnSpinner />}
+                  {busy === "leave" ? "Keluar..." : "Ya, Keluar"}
                 </button>
                 <button
                   type="button"
@@ -248,20 +313,19 @@ export default function TeamMembershipActions({ teamId }: { teamId: string }) {
                     <button
                       type="button"
                       onClick={() => handleApprove(req.id)}
-                      className="rounded-[10px] bg-[#2f5d9a] px-5 py-2 text-[15px] font-medium text-white transition-colors hover:bg-[#274d80]"
+                      disabled={busy !== null}
+                      className="flex items-center gap-2 rounded-[10px] bg-[#2f5d9a] px-5 py-2 text-[15px] font-medium text-white transition-colors hover:bg-[#274d80] disabled:cursor-wait disabled:opacity-70"
                     >
+                      {busy === `approve:${req.id}` && <BtnSpinner />}
                       Setujui
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        void (async () => {
-                          await rejectRequest(req.id);
-                          toast.success("Pendaftar ditolak.");
-                        })();
-                      }}
-                      className="rounded-[10px] border border-[#c9d4e2] px-5 py-2 text-[15px] font-medium text-zinc-600 transition-colors hover:bg-slate-50"
+                      onClick={() => handleReject(req.id)}
+                      disabled={busy !== null}
+                      className="flex items-center gap-2 rounded-[10px] border border-[#c9d4e2] px-5 py-2 text-[15px] font-medium text-zinc-600 transition-colors hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70"
                     >
+                      {busy === `reject:${req.id}` && <BtnSpinner />}
                       Tolak
                     </button>
                   </span>
@@ -282,9 +346,11 @@ export default function TeamMembershipActions({ teamId }: { teamId: string }) {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="h-[48px] rounded-[10px] bg-[#b3261e] px-6 text-[16px] font-medium text-white transition-colors hover:bg-[#8f1d1d]"
+                disabled={busy !== null}
+                className="flex h-[48px] items-center gap-2 rounded-[10px] bg-[#b3261e] px-6 text-[16px] font-medium text-white transition-colors hover:bg-[#8f1d1d] disabled:cursor-wait disabled:opacity-70"
               >
-                Ya, Hapus Tim
+                {busy === "delete" && <BtnSpinner />}
+                {busy === "delete" ? "Menghapus..." : "Ya, Hapus Tim"}
               </button>
               <button
                 type="button"
