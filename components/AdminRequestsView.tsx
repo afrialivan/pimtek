@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocalDb } from "@/components/LocalDbProvider";
 import { ContentSkeleton } from "@/components/Skeleton";
 import { useToast } from "@/components/Toast";
+import { formatTanggal } from "@/lib/format-date";
 
 export default function AdminRequestsView() {
   const { ready, user, requests, teams, approveRequest, rejectRequest } =
@@ -80,7 +81,7 @@ export default function AdminRequestsView() {
                     </Link>
                   </span>
                   <span className="block text-[13px] text-zinc-500">
-                    {req.createdAt}
+                    {formatTanggal(req.createdAt)}
                   </span>
                 </span>
                 <span className="flex gap-2">

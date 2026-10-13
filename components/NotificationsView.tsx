@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { formatTanggal } from "@/lib/format-date";
 import { isProfileIncomplete } from "@/lib/team-types";
 import { ContentSkeleton } from "@/components/Skeleton";
 
@@ -105,7 +106,7 @@ export default function NotificationsView() {
                       <strong>{teamTitle(req.teamId)}</strong>
                     </span>
                     <span className="block text-[13px] text-zinc-500">
-                      {req.nim} · {req.createdAt}
+                      {req.nim} · {formatTanggal(req.createdAt)}
                     </span>
                   </span>
                   {statusChip(req.status)}
@@ -137,7 +138,7 @@ export default function NotificationsView() {
                       {teamTitle(req.teamId)}
                     </span>
                     <span className="block text-[13px] text-zinc-500">
-                      {req.createdAt}
+                      {formatTanggal(req.createdAt)}
                     </span>
                   </span>
                   {statusChip(req.status)}

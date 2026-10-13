@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Avatar from "@/components/Avatar";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { formatTanggal } from "@/lib/format-date";
 import ProfileModal from "@/components/ProfileModal";
 import { useToast } from "@/components/Toast";
 
@@ -306,7 +307,7 @@ export default function TeamMembershipActions({ teamId }: { teamId: string }) {
                       {req.name}
                     </span>
                     <span className="block text-[13px] text-zinc-500">
-                      {req.nim} · {req.createdAt}
+                      {req.nim} · {formatTanggal(req.createdAt)}
                     </span>
                   </button>
                   <span className="ml-auto flex gap-2">
