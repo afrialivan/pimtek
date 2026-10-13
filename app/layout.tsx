@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OKFT-UH — PIMTEK Team Finder",
+  title: "OKFT-UH - PIMTEK",
   description: "Cari dan bentuk tim perlombaan Pekan Ilmiah Teknik oleh OKFT-UH.",
 };
 

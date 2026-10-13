@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocalDb, type LocalUser } from "@/components/LocalDbProvider";
+import { ContentSkeleton } from "@/components/Skeleton";
 import { useToast } from "@/components/Toast";
 
 const inputClass =
@@ -26,7 +27,7 @@ export default function AdminUsersView() {
   const isCustomDept = form.department === OTHER_DEPARTMENT;
 
   if (!ready) {
-    return <p className="text-[16px] text-zinc-500">Memuat...</p>;
+    return <ContentSkeleton />;
   }
 
   if (!user || user.role !== "admin") {

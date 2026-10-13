@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLocalDb } from "@/components/LocalDbProvider";
 import { PKM_SCHEMES } from "@/lib/team-types";
+import { ProfileSkeleton } from "@/components/Skeleton";
 
 function BarRow({ label, value, max }: { label: string; value: number; max: number }) {
   return (
@@ -29,8 +30,8 @@ export default function ProfileCard() {
 
   if (!ready) {
     return (
-      <section className="rounded-[22px] bg-white px-5 py-10 shadow-[0_2px_16px_rgba(30,60,110,0.06)] sm:px-8">
-        <p className="text-[16px] text-zinc-500">Memuat profil...</p>
+      <section className="rounded-[22px] bg-white px-5 py-8 shadow-[0_2px_16px_rgba(30,60,110,0.06)] sm:px-8">
+        <ProfileSkeleton />
       </section>
     );
   }

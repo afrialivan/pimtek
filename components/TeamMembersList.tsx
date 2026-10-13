@@ -4,13 +4,14 @@ import { useState } from "react";
 import Avatar from "@/components/Avatar";
 import { useLocalDb } from "@/components/LocalDbProvider";
 import ProfileModal from "@/components/ProfileModal";
+import { ListSkeleton } from "@/components/Skeleton";
 
 export default function TeamMembersList({ teamId }: { teamId: string }) {
   const { ready, memberships, users } = useLocalDb();
   const [selectedNim, setSelectedNim] = useState<string | null>(null);
 
   if (!ready) {
-    return <p className="mt-5 text-[15px] text-zinc-400">Memuat anggota...</p>;
+    return <ListSkeleton rows={4} />;
   }
 
   const members = memberships

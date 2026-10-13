@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { ContentSkeleton } from "@/components/Skeleton";
 import { useToast } from "@/components/Toast";
 
 const inputClass =
@@ -46,7 +47,7 @@ export default function ProfileForm() {
   }
 
   if (!ready) {
-    return <p className="text-[16px] text-zinc-500">Memuat...</p>;
+    return <ContentSkeleton />;
   }
 
   if (!user || !draft) return null;

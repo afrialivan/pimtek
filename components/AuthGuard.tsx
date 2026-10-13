@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { PageSkeleton } from "@/components/Skeleton";
 
 const PUBLIC_PATHS = ["/login", "/register"];
 
@@ -20,26 +21,19 @@ function GuardInner({ children }: { children: ReactNode }) {
   }, [ready, user, isPublic, router]);
 
   if (!ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#edf1f7]">
-        <p className="text-[17px] text-zinc-500">Memuat...</p>
-      </div>
-    );
+    // Route publik (login/register) langsung render tanpa menunggu fetch,
+    // agar tidak ada flash loading yang tidak perlu.
+    if (isPublic) return <>{children}</>;
+    return <PageSkeleton />;
   }
 
-  if (!user && !isPublic) return null;
+  if (!user && !isPublic) return <PageSkeleton />;
   return <>{children}</>;
 }
 
 export default function AuthGuard({ children }: { children: ReactNode }) {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#edf1f7]">
-          <p className="text-[17px] text-zinc-500">Memuat...</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<PageSkeleton />}>
       <GuardInner>{children}</GuardInner>
     </Suspense>
   );

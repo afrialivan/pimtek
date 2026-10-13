@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { ContentSkeleton } from "@/components/Skeleton";
 import { useToast } from "@/components/Toast";
 
 export default function AdminTeamsView() {
@@ -11,7 +12,7 @@ export default function AdminTeamsView() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   if (!ready) {
-    return <p className="text-[16px] text-zinc-500">Memuat...</p>;
+    return <ContentSkeleton />;
   }
 
   if (!user || user.role !== "admin") {

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useLocalDb } from "@/components/LocalDbProvider";
 import MenuSheet from "@/components/MenuSheet";
+import { useToast } from "@/components/Toast";
 
 function GridIcon({ active }: { active: boolean }) {
   const color = active ? "#1d5a9a" : "#8a8a8a";
@@ -98,6 +99,7 @@ export default function BottomNav() {
 function BottomNavInner() {
   const pathname = usePathname();
   const { user, memberships, requests, logout } = useLocalDb();
+  const toast = useToast();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const isAdmin = user?.role === "admin";
@@ -164,8 +166,12 @@ function BottomNavInner() {
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onLogout={() => {
+          const id = toast.loading("Logging out...");
           logout();
-          router.replace("/login");
+          window.setTimeout(() => {
+            toast.dismiss(id);
+            router.replace("/login");
+          }, 800);
         }}
       />
     </>

@@ -11,13 +11,15 @@ import {
 
 interface ToastItem {
   id: number;
-  kind: "success" | "error";
+  kind: "success" | "error" | "loading";
   message: string;
 }
 
 interface ToastContextValue {
   success: (message: string) => void;
   error: (message: string) => void;
+  loading: (message: string) => number;
+  dismiss: (id: number) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -28,6 +30,14 @@ function ToastIcon({ kind }: { kind: ToastItem["kind"] }) {
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
         <circle cx="12" cy="12" r="10" fill="#22a55b" />
         <path d="m8 12.5 2.7 2.7L16.5 9" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (kind === "loading") {
+    return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 animate-spin">
+        <circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.35)" strokeWidth="3" />
+        <path d="M21 12a9 9 0 0 0-9-9" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
       </svg>
     );
   }
@@ -51,9 +61,24 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
     }, 3500);
   }, []);
 
+  const dismiss = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const loading = useCallback(
+    (message: string) => {
+      const id = nextId.current++;
+      setToasts((prev) => [...prev.slice(-2), { id, kind: "loading", message }]);
+      return id;
+    },
+    []
+  );
+
   const value: ToastContextValue = {
     success: (message) => push("success", message),
     error: (message) => push("error", message),
+    loading,
+    dismiss,
   };
 
   return (
@@ -67,7 +92,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={toast.id}
             className={`toast-in pointer-events-auto flex w-full items-center gap-3 rounded-[14px] px-4 py-3 shadow-lg ${
-              toast.kind === "success" ? "bg-[#1d5a9a]" : "bg-[#8f1d1d]"
+              toast.kind === "error" ? "bg-[#8f1d1d]" : "bg-[#1d5a9a]"
             }`}
           >
             <ToastIcon kind={toast.kind} />

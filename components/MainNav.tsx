@@ -72,7 +72,7 @@ export default function MainNav({ active }: { active: SidebarActive }) {
             className={`${navItemBase} ${active === "teams" ? activeClass : idleClass}`}
           >
             <TeamsIcon />
-            TEAMS
+            TEAM
           </Link>
         </>
       )}

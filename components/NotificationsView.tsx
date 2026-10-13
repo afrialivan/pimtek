@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { ContentSkeleton } from "@/components/Skeleton";
 
 function statusChip(status: string) {
   if (status === "approved")
@@ -28,7 +29,7 @@ export default function NotificationsView() {
   const { ready, user, memberships, requests, teams } = useLocalDb();
 
   if (!ready) {
-    return <p className="text-[16px] text-zinc-500">Memuat...</p>;
+    return <ContentSkeleton />;
   }
 
   if (!user) return null;

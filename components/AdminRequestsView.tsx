@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { ContentSkeleton } from "@/components/Skeleton";
 import { useToast } from "@/components/Toast";
 
 export default function AdminRequestsView() {
@@ -10,7 +11,7 @@ export default function AdminRequestsView() {
   const toast = useToast();
 
   if (!ready) {
-    return <p className="text-[16px] text-zinc-500">Memuat...</p>;
+    return <ContentSkeleton />;
   }
 
   if (!user || user.role !== "admin") {

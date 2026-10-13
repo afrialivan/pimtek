@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocalDb } from "@/components/LocalDbProvider";
+import { ContentSkeleton } from "@/components/Skeleton";
 
 function Table({
   title,
@@ -75,7 +76,7 @@ export default function DbViewer() {
   }
 
   if (!ready) {
-    return <p className="text-[16px] text-zinc-500">Memuat database...</p>;
+    return <ContentSkeleton />;
   }
 
   return (
