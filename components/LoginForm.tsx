@@ -88,17 +88,6 @@ export default function LoginForm() {
       <div className="flex items-start gap-6">
         <span className="flex flex-col items-center gap-1">
           <Image
-            src="/logo-okft.png"
-            alt="Logo OKFT-UH"
-            width={72}
-            height={72}
-            className="h-[72px] w-auto object-contain"
-            priority
-          />
-          <span className="text-[13px] font-bold text-[#e63946]">OKFT-UH</span>
-        </span>
-        <span className="flex flex-col items-center gap-1">
-          <Image
             src="/logo-unhas.png"
             alt="Logo Universitas Hasanuddin"
             width={72}
@@ -112,6 +101,18 @@ export default function LoginForm() {
             HASANUDDIN
           </span>
         </span>
+        <span className="flex flex-col items-center gap-1">
+          <Image
+            src="/logo-okft.png"
+            alt="Logo OKFT-UH"
+            width={72}
+            height={72}
+            className="h-[72px] w-auto object-contain"
+            priority
+          />
+          <span className="text-[13px] font-bold text-[#e63946]">OKFT-UH</span>
+        </span>
+        
       </div>
 
       <div className="mt-5 w-full max-w-[520px] rounded-[24px] bg-[#fafafb] px-6 py-7 sm:px-10">
